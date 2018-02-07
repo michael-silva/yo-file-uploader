@@ -1,0 +1,21 @@
+{
+  "name": "yo-file-uploader",
+  "description": "File uploader with drag and drop",
+  "main": "yo-file-uploader.html",
+  "dependencies": {
+    "polymer": "Polymer/polymer#^2.0.0",
+    "paper-button": "^2.0.0",
+    "paper-item": "^2.0.0",
+    "iron-icon": "^2.0.1",
+    "iron-icons": "^2.0.1",
+    "paper-icon-button": "^2.1.0"
+  },
+  "devDependencies": {
+    "iron-demo-helpers": "PolymerElements/iron-demo-helpers#^2.0.0",
+    "web-component-tester": "Polymer/web-component-tester#^6.0.0",
+    "webcomponentsjs": "webcomponents/webcomponentsjs#^1.0.0"
+  },
+  "resolutions": {
+    "polymer": "^2.0.0"
+  }
+}

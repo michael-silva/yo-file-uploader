@@ -1,0 +1,267 @@
+<link rel="import" href="../polymer/polymer-element.html">
+<link rel="import" href="../polymer/lib/elements/dom-repeat.html">
+<link rel="import" href="../paper-button/paper-button.html">
+<link rel="import" href="../paper-item/paper-icon-item.html">
+<link rel="import" href="../paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../paper-item/paper-item-body.html">
+<link rel="import" href="../iron-icon/iron-icon.html">
+<link rel="import" href="../iron-icons/iron-icons.html">
+<link rel="import" href="../paper-styles/paper-styles.html">
+
+
+<dom-module id="yo-file-uploader">
+    <template>
+        <style>
+            :host {
+                display: block;
+            }
+
+            :host([disabled]) {
+                cursor: not-allowed;
+            }
+
+            #droparea {
+                display: flex;
+                flex-direction: column;
+                padding: 20px;
+                text-align: center;
+                cursor: pointer;
+                color: var(--yo-file-color, var(--paper-grey-600));
+                border: 4px dashed var(--yo-file-color, var(--paper-grey-600));
+            }
+
+            :host([disabled]) #droparea {
+                pointer-events: none;
+                text-decoration: line-through;
+                color: var(--yo-file-disabled-color, var(--paper-grey-400));
+                border-color: var(--yo-file-disabled-color, var(--paper-grey-400));
+            }
+
+            #droparea:hover {
+                color: var(--yo-file-hover-color, var(--paper-grey-600));
+                border-color: var(--yo-file-hover-color, var(--paper-grey-600));
+                background-color: var(--yo-file-hover-bgcolor, var(--paper-grey-50));
+            }
+
+            #droparea.highlight {
+                color: var(--yo-file-active-color, var(--paper-indigo-600));
+                border-color: var(--yo-file-active-color, var(--paper-indigo-600));
+                background-color: var(--yo-file-active-bgcolor, var(--paper-indigo-50));
+            }
+
+            .icon {
+                margin: auto;
+                height: var(--yo-file-icon-height, 40px);
+                width: var(--yo-file-icon-width, 40px);
+            }
+
+            .feedback {
+                font-weight: bold;
+                color: var(--yo-file-feedback-color, var(--paper-red-600));
+            }
+
+            .item {
+                display: flex;
+            }
+
+            .item .remove {
+                margin: auto;
+                display: inline-flex;
+            }
+
+            #input {
+                display: none;
+            }
+        </style>
+        <label for="input" id="droparea">
+            <iron-icon class="icon" icon="file-upload"></iron-icon>
+            <input type="file" id="input" multiple$="[[multiple]]" accept$="[[accept]]">
+            <span class="label">{{label}}</span>
+            <span class="feedback">{{feedbackText}}</span>
+        </label>
+        <div role="listbox">
+            <template is="dom-repeat" items="{{files}}">
+                <paper-item class="item">
+                    <paper-item-body two-line>
+                        <div>[[item.name]]</div>
+                        <div secondary>[[item.type]]</div>
+                    </paper-item-body>
+                    <paper-icon-button class="remove" icon="close" alt="Remove file" on-click="_removeFile"></paper-icon-button>
+                </paper-item>
+            </template>
+        </div>
+    </template>
+
+    <script>
+        /**
+         * `yo-file-uploader`
+         * File uploader with drag and drop
+         *
+         * @customElement
+         * @polymer
+         * @demo demo/index.html
+         */
+        class YoFileUploader extends Polymer.Element {
+            static get is() { return 'yo-file-uploader'; }
+            static get properties() {
+                return {
+                    label: {
+                        type: String,
+                        value: "Drop files here or click"
+                    },
+                    multiple: {
+                        type: Boolean,
+                        value: false
+                    },
+                    maxsize: {
+                        type: Number
+                    },
+                    maxfiles: {
+                        type: Number
+                    },
+                    unit: {
+                        type: String,
+                        value: 'Kb',
+                        _observer: '_unitChanged'
+                    },
+                    accept: {
+                        type: String,
+                        value: "image/*"
+                    },
+                    disabled: {
+                        type: Boolean,
+                        value: false,
+                        reflectToAttribute: true
+                    }
+                };
+            }
+
+            _unitChanged(newUnit, oldUnit) {
+                newUnit = newUnit.toLowerCase();
+                if (this._allowedUnits.indexOf(newUnit) == -1) 
+                    throw new Error(`The unit ${newUnit} is not known at yo-file-uploader`);
+            }
+
+            _preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            _highlight(e) {
+                this.$.droparea.classList.add('highlight')
+            }
+
+            _unhighlight(e) {
+                this.$.droparea.classList.remove('highlight')
+            }
+
+            _handleDrop(e) {
+                let dt = e.dataTransfer
+                let files = dt.files
+
+                this._handleFiles(files)
+            }
+
+            _handleFiles(files) {
+                files = [...files];
+                if (this.multiple) {
+                    this._handleMultipleFiles(files);
+                }
+                else if (files.length === 1) {
+                    this._handleSingleFile(files[0]);
+                }
+                else {
+                    this._singleFeedback();
+                }
+            }
+
+            _handleMultipleFiles(files) {
+                if (this.maxfiles && this.files.length + files.length > this.maxfiles)
+                    this._tooManyFeedback();
+                else if (files.some(file => this.maxsize && files[0].size > this.getMaxsize()))
+                    this._tooLargeFeedback();
+                else {
+                    files.forEach(file => this.push('files', file));
+                }
+            }
+
+            _handleSingleFile(file) {
+                if (this.maxsize && file.size > this.getMaxsize())
+                    this._tooLargeFeedback();
+                else if (this.files.length === 0)
+                    this.push('files', file);
+                else
+                    this.set('files.0', file);
+            }
+
+            _createFeedback(id) {
+                let text = this._feedbacks[id];
+                text = text.replace(/\{maxsize\}/, this.maxsize);
+                text = text.replace(/\{maxfiles\}/, this.getMaxsize());
+                text = text.replace(/\{accept\}/, this.accept);
+                text = text.replace(/\{label\}/, this.label);
+                text = text.replace(/\{multiple\}/, this.multiple);
+                text = text.replace(/\{unit\}/, this.unit);
+                this.feedbackText = text;
+            }
+
+            _singleFeedback() {
+                this._createFeedback('single');
+            }
+
+            _tooLargeFeedback() {
+                this._createFeedback('tooLarge');
+            }
+
+            _tooManyFeedback() {
+                this._createFeedback('tooMany');
+            }
+
+            _removeFile(e) {
+                this.splice('files', e.model.index, 1);
+            }
+
+            constructor() {
+                super();
+                this.files = [];
+                this._allowedUnits = ['b', 'kb', 'mb', 'gb'];
+                this._feedbacks = {
+                    single: 'Sorry but you can only upload one file!',
+                    tooLarge: 'This file is too large, try a file smaller than {maxsize}{unit}',
+                    tooMany: 'You can only upload {maxfiles} files'
+                };
+            }
+
+            connectedCallback() {
+                super.connectedCallback();
+
+                this.$.droparea.querySelector('input').addEventListener('change', (e) => this._handleFiles(e.target.files));
+
+                ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                    this.$.droparea.addEventListener(eventName, this._preventDefaults.bind(this), false);
+                });
+
+                ['dragenter', 'dragover'].forEach(eventName => {
+                    this.$.droparea.addEventListener(eventName, this._highlight.bind(this), false)
+                });
+
+                ['dragleave', 'drop'].forEach(eventName => {
+                    this.$.droparea.addEventListener(eventName, this._unhighlight.bind(this), false)
+                });
+
+                this.$.droparea.addEventListener('drop', this._handleDrop.bind(this), false);
+            }
+
+            getMaxsize() {
+                const i = this._allowedUnits.indexOf(this.unit.toLowerCase());
+                return this.maxsize * i * 1024;
+            }
+
+            setFeedback(id, text) {
+                this._feedbacks[id] = text;
+            }
+        }
+
+        window.customElements.define(YoFileUploader.is, YoFileUploader);
+    </script>
+</dom-module>

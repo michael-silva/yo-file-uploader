@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+
+    <title>yo-file-uploader demo</title>
+
+    <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+
+    <link rel="import" href="../../iron-demo-helpers/demo-pages-shared-styles.html">
+    <link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
+    <link rel="import" href="../yo-file-uploader.html">
+
+    <custom-style>
+        <style is="custom-style" include="demo-pages-shared-styles">
+        </style>
+    </custom-style>
+</head>
+
+<body>
+    <div class="vertical-section-container centered">
+        <h3>Basic yo-file-uploader demo</h3>
+        <demo-snippet>
+            <template>
+                <yo-file-uploader></yo-file-uploader>
+            </template>
+        </demo-snippet>
+    </div>
+    <div class="vertical-section-container centered">
+        <h3>Multiple yo-file-uploader demo</h3>
+        <demo-snippet>
+            <template>
+                <yo-file-uploader multiple></yo-file-uploader>
+            </template>
+        </demo-snippet>
+    </div>
+    <div class="vertical-section-container centered">
+        <h3>Disabled yo-file-uploader demo</h3>
+        <demo-snippet>
+            <template>
+                <yo-file-uploader disabled></yo-file-uploader>
+            </template>
+        </demo-snippet>
+    </div>
+    <div class="vertical-section-container centered">
+        <h3>Limit size of files with yo-file-uploader demo</h3>
+        <demo-snippet>
+            <template>
+                <yo-file-uploader maxsize="1024"></yo-file-uploader>
+            </template>
+        </demo-snippet>
+    </div>
+    <div class="vertical-section-container centered">
+        <h3>Limit number of files with yo-file-uploader demo</h3>
+        <demo-snippet>
+            <template>
+                <yo-file-uploader multiple maxfiles="3"></yo-file-uploader>
+            </template>
+        </demo-snippet>
+    </div>
+</body>
+
+</html>
