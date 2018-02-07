@@ -1,7 +1,9 @@
 {
   "name": "yo-file-uploader",
+  "version": "0.0.1",
   "description": "File uploader with drag and drop",
   "main": "yo-file-uploader.html",
+  "license": "MIT",
   "dependencies": {
     "polymer": "Polymer/polymer#^2.0.0",
     "paper-button": "^2.0.0",

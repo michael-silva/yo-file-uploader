@@ -182,16 +182,24 @@
                     this._tooLargeFeedback();
                 else {
                     files.forEach(file => this.push('files', file));
+                    this.dispatchEvent(new CustomEvent('addFile', { detail: { files: files }}));
+                    this.dispatchEvent(new CustomEvent('change', { detail: { files: this.files }}));
                 }
             }
 
             _handleSingleFile(file) {
                 if (this.maxsize && file.size > this.getMaxsize())
                     this._tooLargeFeedback();
-                else if (this.files.length === 0)
-                    this.push('files', file);
-                else
-                    this.set('files.0', file);
+                else {
+                    if (this.files.length === 0) {
+                        this.push('files', file);
+                        this.dispatchEvent(new CustomEvent('addFile', { detail: { files: [ file ] }}));
+                    }
+                    else
+                        this.set('files.0', file);
+                    
+                    this.dispatchEvent(new CustomEvent('change', { detail: { files: this.files }}));
+                }
             }
 
             _createFeedback(id) {
@@ -218,7 +226,9 @@
             }
 
             _removeFile(e) {
-                this.splice('files', e.model.index, 1);
+                const removed = this.splice('files', e.model.index, 1);
+                this.dispatchEvent(new CustomEvent('removeFile', { detail: { files: [ removed ] }}));
+                this.dispatchEvent(new CustomEvent('change', { detail: { files: this.files }}));
             }
 
             constructor() {
