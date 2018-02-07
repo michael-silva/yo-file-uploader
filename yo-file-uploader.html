@@ -49,6 +49,11 @@
                 background-color: var(--yo-file-active-bgcolor, var(--paper-indigo-50));
             }
 
+            #droparea.hidden {
+                display: none;
+            }
+
+
             .icon {
                 margin: auto;
                 height: var(--yo-file-icon-height, 40px);
@@ -60,7 +65,25 @@
                 color: var(--yo-file-feedback-color, var(--paper-red-600));
             }
 
+            .listbox.single:hover {
+                cursor: pointer;
+                background-color: var(--yo-file-hover-bgcolor, var(--paper-grey-50));
+            }
+
+            .listbox > .label {
+                padding-top: .5em;
+                display: none;
+            }
+
+            .listbox.single > .label {
+                display: block;
+                text-align: center;
+                color: var(--yo-file-color, var(--paper-grey-600));
+                font-size: .9em;
+            }
+
             .item {
+                position: relative;
                 display: flex;
             }
 
@@ -79,9 +102,13 @@
             <span class="label">{{label}}</span>
             <span class="feedback">{{feedbackText}}</span>
         </label>
-        <div role="listbox">
+        <div id="listbox" class="listbox" role="listbox">
+            <div class="label">
+                <span>[[label]]</span>
+                <span class="feedback">{{feedbackText}}</span>
+            </div>
             <template is="dom-repeat" items="{{files}}">
-                <paper-item class="item">
+                <paper-item class="item" on-click="_clickItem">
                     <paper-item-body two-line>
                         <div>[[item.name]]</div>
                         <div secondary>[[item.type]]</div>
@@ -132,13 +159,17 @@
                         type: Boolean,
                         value: false,
                         reflectToAttribute: true
+                    },
+                    hideDroparea: {
+                        type: Boolean,
+                        value: false,
                     }
                 };
             }
 
             _unitChanged(newUnit, oldUnit) {
                 newUnit = newUnit.toLowerCase();
-                if (this._allowedUnits.indexOf(newUnit) == -1) 
+                if (this._allowedUnits.indexOf(newUnit) == -1)
                     throw new Error(`The unit ${newUnit} is not known at yo-file-uploader`);
             }
 
@@ -153,6 +184,16 @@
 
             _unhighlight(e) {
                 this.$.droparea.classList.remove('highlight')
+            }
+
+            _hideDroparea() {
+                this.$.listbox.classList.add('single');
+                this.$.droparea.classList.add('hidden');
+            }
+
+            _unhideDroparea() {
+                this.$.listbox.classList.remove('single');
+                this.$.droparea.classList.remove('hidden');
             }
 
             _handleDrop(e) {
@@ -182,8 +223,11 @@
                     this._tooLargeFeedback();
                 else {
                     files.forEach(file => this.push('files', file));
-                    this.dispatchEvent(new CustomEvent('addFile', { detail: { files: files }}));
-                    this.dispatchEvent(new CustomEvent('change', { detail: { files: this.files }}));
+                    this.dispatchEvent(new CustomEvent('file-added', { detail: { files: files } }));
+                    this.dispatchEvent(new CustomEvent('change', { detail: { files: this.files } }));
+                    if (this.files.length + files.length === this.maxfiles && this.hideDroparea) {
+                        this._hideDroparea();
+                    }
                 }
             }
 
@@ -193,12 +237,13 @@
                 else {
                     if (this.files.length === 0) {
                         this.push('files', file);
-                        this.dispatchEvent(new CustomEvent('addFile', { detail: { files: [ file ] }}));
+                        this.dispatchEvent(new CustomEvent('file-added', { detail: { files: [file] } }));
+                        if (this.hideDroparea) this._hideDroparea();
                     }
                     else
                         this.set('files.0', file);
-                    
-                    this.dispatchEvent(new CustomEvent('change', { detail: { files: this.files }}));
+
+                    this.dispatchEvent(new CustomEvent('change', { detail: { files: this.files } }));
                 }
             }
 
@@ -226,9 +271,16 @@
             }
 
             _removeFile(e) {
+                this._preventDefaults(e);
                 const removed = this.splice('files', e.model.index, 1);
-                this.dispatchEvent(new CustomEvent('removeFile', { detail: { files: [ removed ] }}));
-                this.dispatchEvent(new CustomEvent('change', { detail: { files: this.files }}));
+                this.dispatchEvent(new CustomEvent('file-removed', { detail: { files: [removed] } }));
+                this.dispatchEvent(new CustomEvent('change', { detail: { files: this.files } }));
+                this._unhideDroparea();
+            }
+
+            _clickItem() {
+                if (this.multiple || !this.hideDroparea) return;
+                this.$.input.click();
             }
 
             constructor() {
