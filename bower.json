@@ -1,6 +1,6 @@
 {
   "name": "yo-file-uploader",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "File uploader with drag and drop",
   "main": "yo-file-uploader.html",
   "license": "MIT",

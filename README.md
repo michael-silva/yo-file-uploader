@@ -19,7 +19,6 @@ A material file uploader with drag and drop
 <yo-file-uploader></yo-file-uploader>
 ```
 
-
 ## For developers ##
 
 ### Install the Polymer-CLI

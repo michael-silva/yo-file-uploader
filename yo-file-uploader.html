@@ -314,6 +314,13 @@
                 this.$.droparea.addEventListener('drop', this._handleDrop.bind(this), false);
             }
 
+            reset() {
+                const removed = this.splice('files', 0);
+                this.dispatchEvent(new CustomEvent('file-removed', { detail: { files: [...removed] } }));
+                this.dispatchEvent(new CustomEvent('change', { detail: { files: this.files } }));
+                this._unhideDroparea();
+            }
+
             getMaxsize() {
                 const i = this._allowedUnits.indexOf(this.unit.toLowerCase());
                 return this.maxsize * i * 1024;
