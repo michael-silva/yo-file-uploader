@@ -222,6 +222,7 @@
                 else if (files.some(file => this.maxsize && files[0].size > this.getMaxsize()))
                     this._tooLargeFeedback();
                 else {
+                    this._clearFeedback();
                     files.forEach(file => this.push('files', file));
                     this.dispatchEvent(new CustomEvent('file-added', { detail: { files: files } }));
                     this.dispatchEvent(new CustomEvent('change', { detail: { files: this.files } }));
@@ -235,6 +236,7 @@
                 if (this.maxsize && file.size > this.getMaxsize())
                     this._tooLargeFeedback();
                 else {
+                    this._clearFeedback();
                     if (this.files.length === 0) {
                         this.push('files', file);
                         this.dispatchEvent(new CustomEvent('file-added', { detail: { files: [file] } }));
@@ -245,6 +247,10 @@
 
                     this.dispatchEvent(new CustomEvent('change', { detail: { files: this.files } }));
                 }
+            }
+
+            _clearFeedback()  {
+                this.feedbackText = '';
             }
 
             _createFeedback(id) {
@@ -319,6 +325,7 @@
                 this.dispatchEvent(new CustomEvent('file-removed', { detail: { files: [...removed] } }));
                 this.dispatchEvent(new CustomEvent('change', { detail: { files: this.files } }));
                 this._unhideDroparea();
+                this._clearFeedback();
             }
 
             getMaxsize() {
