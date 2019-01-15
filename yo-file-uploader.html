@@ -303,6 +303,7 @@
             connectedCallback() {
                 super.connectedCallback();
 
+                this.$.droparea.querySelector('input').addEventListener('click', () => this.$.droparea.querySelector('input').value = null);
                 this.$.droparea.querySelector('input').addEventListener('change', (e) => this._handleFiles(e.target.files));
 
                 ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
